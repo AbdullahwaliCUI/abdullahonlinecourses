@@ -7,13 +7,13 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
 export async function verifyRequest(
-  requestId: string, 
-  finalEmail: string, 
-  password: string, 
+  requestId: string,
+  finalEmail: string,
+  password: string,
   notes?: string
 ) {
   const currentUser = await getCurrentUser()
-  
+
   if (!currentUser || currentUser.profile?.role !== 'admin') {
     return { error: 'Unauthorized' }
   }
@@ -66,7 +66,7 @@ export async function verifyRequest(
 
     // Initialize first topic progress
     const progressResult = await initializeFirstTopicOnActivation(
-      authData.user.id, 
+      authData.user.id,
       request.course_id
     )
 
@@ -93,9 +93,9 @@ export async function verifyRequest(
     }
 
     revalidatePath('/admin/requests')
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       email: finalEmail,
       message: 'Student account created successfully'
     }
@@ -107,7 +107,7 @@ export async function verifyRequest(
 
 export async function rejectRequest(requestId: string, reason: string) {
   const currentUser = await getCurrentUser()
-  
+
   if (!currentUser || currentUser.profile?.role !== 'admin') {
     return { error: 'Unauthorized' }
   }
@@ -148,14 +148,14 @@ export async function upsertCourse(
   }
 ) {
   const currentUser = await getCurrentUser()
-  
+
   if (!currentUser || currentUser.profile?.role !== 'admin') {
     return { error: 'Unauthorized' }
   }
 
-  const supabase = createAdminClient()
-
   try {
+    const supabase = createAdminClient()
+
     if (courseData.id) {
       // Update existing course
       const { data, error } = await supabase
@@ -199,8 +199,9 @@ export async function upsertCourse(
       return { success: true, course: data }
     }
   } catch (error) {
+    console.error('Error in upsertCourse FULL OBJECT:', JSON.stringify(error, null, 2))
     console.error('Error in upsertCourse:', error)
-    return { error: 'An unexpected error occurred' }
+    return { error: 'An unexpected error occurred during course creation: ' + (error as any).message }
   }
 }
 
@@ -213,7 +214,7 @@ export async function upsertTopic(
   }
 ) {
   const currentUser = await getCurrentUser()
-  
+
   if (!currentUser || currentUser.profile?.role !== 'admin') {
     return { error: 'Unauthorized' }
   }
@@ -276,7 +277,7 @@ export async function upsertVideo(
   }
 ) {
   const currentUser = await getCurrentUser()
-  
+
   if (!currentUser || currentUser.profile?.role !== 'admin') {
     return { error: 'Unauthorized' }
   }
@@ -340,7 +341,7 @@ export async function createTest(
   }
 ) {
   const currentUser = await getCurrentUser()
-  
+
   if (!currentUser || currentUser.profile?.role !== 'admin') {
     return { error: 'Unauthorized' }
   }
@@ -381,7 +382,7 @@ export async function gradeAttempt(
   }
 ) {
   const currentUser = await getCurrentUser()
-  
+
   if (!currentUser || currentUser.profile?.role !== 'admin') {
     return { error: 'Unauthorized' }
   }
