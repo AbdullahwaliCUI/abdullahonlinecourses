@@ -123,7 +123,6 @@ export default function AdminCoursesPage() {
       toast.error('Failed to load videos', 'Please try again.')
     }
   }
-  }
 
   const handleCourseSubmit = async () => {
     setProcessing(true)
@@ -331,9 +330,8 @@ export default function AdminCoursesPage() {
               {courses.map((course) => (
                 <div
                   key={course.id}
-                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                    selectedCourse?.id === course.id ? 'bg-blue-50 border-blue-200' : ''
-                  }`}
+                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${selectedCourse?.id === course.id ? 'bg-blue-50 border-blue-200' : ''
+                    }`}
                   onClick={() => setSelectedCourse(course)}
                 >
                   <div className="flex justify-between items-start">
@@ -343,9 +341,8 @@ export default function AdminCoursesPage() {
                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">{course.description}</p>
                       )}
                       <div className="flex items-center mt-2">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          course.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${course.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
                           {course.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </div>
@@ -393,9 +390,8 @@ export default function AdminCoursesPage() {
                 topics.map((topic) => (
                   <div
                     key={topic.id}
-                    className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                      selectedTopic?.id === topic.id ? 'bg-green-50 border-green-200' : ''
-                    }`}
+                    className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${selectedTopic?.id === topic.id ? 'bg-green-50 border-green-200' : ''
+                      }`}
                     onClick={() => setSelectedTopic(topic)}
                   >
                     <div className="flex justify-between items-start">
@@ -494,7 +490,7 @@ export default function AdminCoursesPage() {
             <h3 className="text-lg font-semibold mb-4">
               {courseModal.mode === 'create' ? 'Create Course' : 'Edit Course'}
             </h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -522,10 +518,20 @@ export default function AdminCoursesPage() {
                 <input
                   type="url"
                   value={courseForm.image_url}
-                  onChange={(e) => setCourseForm({ ...courseForm, image_url: e.target.value })}
+                  onChange={(e) => {
+                    let val = e.target.value
+                    // Auto-convert YouTube URL to Thumbnail
+                    const ytMatch = val.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)
+                    if (ytMatch && ytMatch[1]) {
+                      val = `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`
+                      toast.success('YouTube Thumbnail Detected', 'Converted video link to thumbnail image.')
+                    }
+                    setCourseForm({ ...courseForm, image_url: val })
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://..."
+                  placeholder="https://... or Paste a YouTube Video Link"
                 />
+                <p className="text-xs text-gray-500 mt-1">Tip: Paste a YouTube video link to automatically get its thumbnail.</p>
               </div>
             </div>
 
@@ -556,7 +562,7 @@ export default function AdminCoursesPage() {
             <h3 className="text-lg font-semibold mb-4">
               {topicModal.mode === 'create' ? 'Create Topic' : 'Edit Topic'}
             </h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -609,7 +615,7 @@ export default function AdminCoursesPage() {
             <h3 className="text-lg font-semibold mb-4">
               {videoModal.mode === 'create' ? 'Create Video' : 'Edit Video'}
             </h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>

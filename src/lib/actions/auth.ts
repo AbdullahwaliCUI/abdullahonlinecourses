@@ -35,13 +35,14 @@ export async function login(email: string, password: string) {
     }
 
     // Revalidate the current path to update auth state
+    // Revalidate the current path to update auth state
     revalidatePath('/', 'layout')
 
-    // Redirect based on role
+    // Determine redirect path
     if (profile.role === 'admin') {
-      redirect('/admin')
+      return { redirect: '/admin' }
     } else {
-      redirect('/student')
+      return { redirect: '/student' }
     }
   } catch (error: any) {
     console.error('Login error:', error)
@@ -54,28 +55,30 @@ export async function logout() {
 
   try {
     const { error } = await supabase.auth.signOut()
-    
+
     if (error) {
       return { error: error.message }
     }
 
     // Revalidate the current path to update auth state
     revalidatePath('/', 'layout')
-    
-    // Redirect to home page
-    redirect('/')
+
+    // Return success to trigger redirect in component or redirect here if safe
   } catch (error: any) {
     console.error('Logout error:', error)
     return { error: 'Failed to logout' }
   }
+
+  redirect('/')
 }
+
 
 export async function getCurrentUser() {
   const supabase = await createClient()
-  
+
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
-    
+
     if (error || !user) {
       return null
     }
