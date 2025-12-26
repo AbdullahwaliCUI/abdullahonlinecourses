@@ -13,6 +13,13 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
+ * Check if URL is HTTPS
+ */
+export function isHttpsUrl(url: string): boolean {
+  return isValidUrl(url) // isValidUrl already checks for HTTPS
+}
+
+/**
  * Check if URL is a YouTube URL
  */
 export function isYouTubeUrl(url: string): boolean {
@@ -110,3 +117,87 @@ export const enrollmentRequestSchema = z.object({
 })
 
 export type EnrollmentRequestData = z.infer<typeof enrollmentRequestSchema>
+
+// Zod schema for admin verify modal
+export const adminVerifySchema = z.object({
+  requestId: z.string().uuid('Invalid request ID'),
+  email: z.string()
+    .email('Invalid email format')
+    .min(1, 'Email is required'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(50, 'Password must be less than 50 characters'),
+  notes: z.string()
+    .max(500, 'Notes must be less than 500 characters')
+    .optional()
+    .or(z.literal(''))
+})
+
+export type AdminVerifyData = z.infer<typeof adminVerifySchema>
+
+// Zod schema for admin reject modal
+export const adminRejectSchema = z.object({
+  requestId: z.string().uuid('Invalid request ID'),
+  reason: z.string()
+    .min(10, 'Rejection reason must be at least 10 characters')
+    .max(500, 'Rejection reason must be less than 500 characters')
+    .trim()
+})
+
+export type AdminRejectData = z.infer<typeof adminRejectSchema>
+
+// Zod schema for course creation/editing
+export const courseSchema = z.object({
+  title: z.string()
+    .min(3, 'Course title must be at least 3 characters')
+    .max(200, 'Course title must be less than 200 characters')
+    .trim(),
+  description: z.string()
+    .min(10, 'Course description must be at least 10 characters')
+    .max(1000, 'Course description must be less than 1000 characters')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+  image_url: z.string()
+    .url('Invalid image URL format')
+    .refine(isHttpsUrl, 'Image URL must be HTTPS')
+    .refine((url) => isGitHubRawUrl(url) || isYouTubeUrl(url), 'Image URL must be from GitHub raw or YouTube thumbnail')
+    .optional()
+    .or(z.literal(''))
+})
+
+export type CourseData = z.infer<typeof courseSchema>
+
+// Zod schema for topic creation/editing
+export const topicSchema = z.object({
+  title: z.string()
+    .min(3, 'Topic title must be at least 3 characters')
+    .max(200, 'Topic title must be less than 200 characters')
+    .trim(),
+  course_id: z.string().uuid('Invalid course ID'),
+  order_index: z.number()
+    .int('Order index must be an integer')
+    .min(1, 'Order index must be at least 1')
+})
+
+export type TopicData = z.infer<typeof topicSchema>
+
+// Zod schema for video creation/editing
+export const videoSchema = z.object({
+  title: z.string()
+    .min(3, 'Video title must be at least 3 characters')
+    .max(200, 'Video title must be less than 200 characters')
+    .trim(),
+  youtube_url: z.string()
+    .url('Invalid YouTube URL format')
+    .refine(isYouTubeUrl, 'Must be a valid YouTube URL'),
+  helper_material_url: z.string()
+    .url('Invalid helper material URL format')
+    .refine(isHttpsUrl, 'Helper material URL must be HTTPS')
+    .refine(isGitHubRawUrl, 'Helper material URL must be from GitHub raw')
+    .optional()
+    .or(z.literal('')),
+  topic_id: z.string().uuid('Invalid topic ID')
+})
+
+export type VideoData = z.infer<typeof videoSchema>

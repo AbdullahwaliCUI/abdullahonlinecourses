@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { enrollmentRequestSchema, type EnrollmentRequestData } from '@/lib/utils/validators'
+import { enrollmentRequestSchema } from '@/lib/utils/validators'
+import { toast } from '@/lib/utils/toast'
+import { LoadingButton } from '@/components/LoadingSpinner'
+import LoadingSpinner from '@/components/LoadingSpinner'
 
 interface Course {
   id: string
@@ -15,7 +18,6 @@ interface Course {
 
 export default function RequestEnrollmentPage() {
   const params = useParams()
-  const router = useRouter()
   const courseId = params.courseId as string
 
   const [course, setCourse] = useState<Course | null>(null)
@@ -45,9 +47,10 @@ export default function RequestEnrollmentPage() {
         const courseData = await response.json()
         setCourse(courseData)
       } else {
-        console.error('Course not found')
+        toast.error('Course not found', 'The course you\'re looking for doesn\'t exist.')
       }
     } catch (error) {
+      toast.error('Error loading course', 'Failed to load course details. Please try again.')
       console.error('Error fetching course:', error)
     } finally {
       setLoading(false)
@@ -88,11 +91,18 @@ export default function RequestEnrollmentPage() {
 
       if (response.ok) {
         setSubmitted(true)
+        toast.success(
+          'Request submitted successfully!', 
+          'You will receive login credentials after admin approval.'
+        )
       } else {
         if (result.errors) {
           setErrors(result.errors)
+          toast.error('Validation errors', 'Please check the form and try again.')
         } else {
-          setErrors({ general: result.error || 'Failed to submit request' })
+          const errorMessage = result.error || 'Failed to submit request'
+          setErrors({ general: errorMessage })
+          toast.error('Submission failed', errorMessage)
         }
       }
     } catch (error: any) {
@@ -105,8 +115,11 @@ export default function RequestEnrollmentPage() {
           }
         })
         setErrors(fieldErrors)
+        toast.error('Validation errors', 'Please check the form and correct any errors.')
       } else {
-        setErrors({ general: 'Failed to submit request. Please try again.' })
+        const errorMessage = 'Failed to submit request. Please try again.'
+        setErrors({ general: errorMessage })
+        toast.error('Submission failed', errorMessage)
       }
     } finally {
       setSubmitting(false)
@@ -117,8 +130,8 @@ export default function RequestEnrollmentPage() {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading course details...</p>
+          <LoadingSpinner size="lg" className="mx-auto mb-4" />
+          <p className="text-gray-600">Loading course details...</p>
         </div>
       </main>
     )
@@ -376,13 +389,13 @@ export default function RequestEnrollmentPage() {
               )}
             </div>
 
-            <button
+            <LoadingButton
               type="submit"
-              disabled={submitting}
+              loading={submitting}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
             >
-              {submitting ? 'Submitting Request...' : 'Submit Enrollment Request'}
-            </button>
+              Submit Enrollment Request
+            </LoadingButton>
           </form>
 
           <div className="mt-6 text-center">

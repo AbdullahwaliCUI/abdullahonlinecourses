@@ -24,7 +24,7 @@ export function getVideoIdFromUrl(url: string): string | null {
 /**
  * Get YouTube thumbnail URL from video ID
  */
-export function getThumbnailUrl(videoId: string, quality: 'default' | 'medium' | 'high' | 'standard' | 'maxres' = 'maxresdefault'): string {
+export function getThumbnailUrl(videoId: string, quality: 'default' | 'medium' | 'high' | 'standard' | 'maxres' = 'maxres'): string {
   if (!videoId) return '';
   
   // Use maxresdefault for best quality, fallback to hqdefault if needed

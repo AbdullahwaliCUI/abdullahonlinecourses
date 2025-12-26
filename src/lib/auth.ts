@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { User } from '@supabase/supabase-js'
 
 export async function getSession() {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   try {
     const { data: { session }, error } = await supabase.auth.getSession()
@@ -15,7 +15,7 @@ export async function getSession() {
 }
 
 export async function getUser(): Promise<User | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -31,7 +31,7 @@ export async function getProfile() {
   const user = await getUser()
   if (!user) return null
 
-  const supabase = createClient()
+  const supabase = await createClient()
   
   try {
     const { data: profile, error } = await supabase

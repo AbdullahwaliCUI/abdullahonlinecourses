@@ -3,6 +3,7 @@ import { getUser } from '@/lib/auth'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getVideoIdFromUrl, getThumbnailUrl } from '@/lib/utils/youtube'
+import { getVisibleTopicsForPublic, getUserEnrollmentStatus } from '@/lib/visibility'
 
 interface Course {
   id: string
@@ -21,15 +22,14 @@ interface Topic {
   created_at: string
 }
 
-interface Enrollment {
-  id: string
-  user_id: string
-  course_id: string
-  status: string
+interface VisibilityData {
+  topics: Topic[]
+  visibleCount: number
+  totalCount: number
 }
 
 async function getCourse(courseId: string): Promise<Course | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: course, error } = await supabase
     .from('courses')
@@ -46,48 +46,19 @@ async function getCourse(courseId: string): Promise<Course | null> {
   return course as Course
 }
 
-async function getCourseTopics(courseId: string): Promise<Topic[]> {
-  const supabase = createClient()
-  
-  const { data: topics, error } = await supabase
-    .from('topics')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('order_index')
-
-  if (error) {
-    console.error('Error fetching topics:', error)
-    return []
-  }
-
-  return topics as Topic[]
+async function getCourseTopics(courseId: string): Promise<VisibilityData> {
+  return await getVisibleTopicsForPublic(courseId)
 }
 
-async function getUserEnrollment(courseId: string): Promise<Enrollment | null> {
+async function getUserEnrollment(courseId: string) {
   const user = await getUser()
-  if (!user) return null
-
-  const supabase = createClient()
-  
-  const { data: enrollment, error } = await supabase
-    .from('enrollments')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('course_id', courseId)
-    .eq('status', 'active')
-    .single()
-
-  if (error) {
-    return null
-  }
-
-  return enrollment as Enrollment
+  return await getUserEnrollmentStatus(user?.id || null, courseId)
 }
 
 async function getCourseThumbnail(courseId: string, imageUrl: string | null): Promise<string | null> {
   if (imageUrl) return imageUrl
 
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get first video from first topic
   const { data: firstTopic } = await supabase
@@ -116,11 +87,11 @@ async function getCourseThumbnail(courseId: string, imageUrl: string | null): Pr
 export default async function CourseDetailsPage({ 
   params 
 }: { 
-  params: { id: string } 
+  params: Promise<{ id: string }> 
 }) {
-  const courseId = params.id
+  const { id: courseId } = await params
   
-  const [course, topics, enrollment] = await Promise.all([
+  const [course, topicsData, enrollmentStatus] = await Promise.all([
     getCourse(courseId),
     getCourseTopics(courseId),
     getUserEnrollment(courseId)
@@ -144,10 +115,12 @@ export default async function CourseDetailsPage({
   }
 
   const thumbnailUrl = await getCourseThumbnail(courseId, course.image_url)
-  const isEnrolled = !!enrollment
-  const totalTopics = topics.length
-  const visibleTopics = isEnrolled ? topics : topics.slice(0, Math.floor(totalTopics / 2))
-  const hiddenTopicsCount = totalTopics - visibleTopics.length
+  const { isEnrolled, isActive } = enrollmentStatus
+  const { topics, visibleCount, totalCount } = topicsData
+  
+  // Determine which topics to show
+  const visibleTopics = isActive ? topics : topics.slice(0, visibleCount)
+  const hiddenTopicsCount = totalCount - visibleTopics.length
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -180,7 +153,7 @@ export default async function CourseDetailsPage({
                 )}
               </div>
               
-              {isEnrolled && (
+              {isActive && (
                 <div className="ml-6">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -197,7 +170,7 @@ export default async function CourseDetailsPage({
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
-                {totalTopics} Topics
+                {totalCount} Topics
               </span>
               <span>•</span>
               <span>Created {new Date(course.created_at).toLocaleDateString()}</span>
@@ -209,9 +182,9 @@ export default async function CourseDetailsPage({
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="px-8 py-6 border-b border-gray-200">
             <h2 className="text-2xl font-semibold text-gray-900">Course Topics</h2>
-            {!isEnrolled && hiddenTopicsCount > 0 && (
+            {!isActive && hiddenTopicsCount > 0 && (
               <p className="text-sm text-gray-600 mt-2">
-                Showing {visibleTopics.length} of {totalTopics} topics. 
+                Showing {visibleTopics.length} of {totalCount} topics. 
                 <span className="font-medium"> Enroll to see all content.</span>
               </p>
             )}
@@ -230,28 +203,37 @@ export default async function CourseDetailsPage({
                   <h3 className="text-lg font-medium text-gray-900">
                     {topic.title}
                   </h3>
+                  {!isActive && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Preview only - Full content available after enrollment
+                    </p>
+                  )}
                 </div>
 
-                {isEnrolled ? (
+                {isActive ? (
                   <Link
-                    href={`/student/courses/${courseId}/topics/${topic.id}`}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
+                    href={`/student/course/${courseId}/topic/${topic.id}`}
+                    className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
                   >
-                    View →
+                    Start Learning
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </Link>
                 ) : (
-                  <div className="text-gray-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center text-gray-400">
+                    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
+                    <span className="text-sm">Locked</span>
                   </div>
                 )}
               </div>
             ))}
 
             {/* Hidden Topics Indicator */}
-            {!isEnrolled && hiddenTopicsCount > 0 && (
-              <div className="px-8 py-6 bg-gray-50">
+            {!isActive && hiddenTopicsCount > 0 && (
+              <div className="px-8 py-6 bg-gray-50 border-t-2 border-dashed border-gray-300">
                 <div className="text-center">
                   <div className="flex items-center justify-center mb-3">
                     <svg className="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,9 +243,23 @@ export default async function CourseDetailsPage({
                       {hiddenTopicsCount} more topics available after enrollment
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500">
-                    Unlock all course content by enrolling today
+                  <p className="text-sm text-gray-500 mb-4">
+                    Unlock all course content including videos, materials, and assessments
                   </p>
+                  <div className="flex justify-center space-x-2">
+                    {Array.from({ length: Math.min(hiddenTopicsCount, 5) }).map((_, i) => (
+                      <div key={i} className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </div>
+                    ))}
+                    {hiddenTopicsCount > 5 && (
+                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-xs text-gray-500 font-medium">+{hiddenTopicsCount - 5}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -271,14 +267,14 @@ export default async function CourseDetailsPage({
         </div>
 
         {/* Enrollment CTA */}
-        {!isEnrolled && (
+        {!isActive && (
           <div className="mt-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-md overflow-hidden">
             <div className="px-8 py-12 text-center text-white">
               <h3 className="text-2xl font-bold mb-4">
                 Ready to Start Learning?
               </h3>
               <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-                Get full access to all {totalTopics} topics, video content, and learning materials. 
+                Get full access to all {totalCount} topics, video content, and learning materials. 
                 Submit your payment and start your learning journey today.
               </p>
               
@@ -297,7 +293,7 @@ export default async function CourseDetailsPage({
         )}
 
         {/* Enrolled Student CTA */}
-        {isEnrolled && (
+        {isActive && (
           <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-green-900 mb-2">
@@ -307,7 +303,7 @@ export default async function CourseDetailsPage({
                 Access your course content and track your progress in the student portal.
               </p>
               <Link
-                href={`/student/courses/${courseId}`}
+                href={`/student/course/${courseId}`}
                 className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors inline-block"
               >
                 Go to Student Portal

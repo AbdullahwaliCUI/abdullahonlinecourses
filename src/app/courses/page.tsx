@@ -16,7 +16,7 @@ interface Video {
 }
 
 async function getCourses() {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: courses, error } = await supabase
     .from('courses')
@@ -33,7 +33,7 @@ async function getCourses() {
 }
 
 async function getCourseThumbnail(courseId: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get first video from first topic of the course
   const { data: video, error } = await supabase
@@ -68,7 +68,7 @@ async function getCoursesWithThumbnails() {
       
       // If no image_url, try to get thumbnail from first video
       if (!thumbnailUrl) {
-        const supabase = createClient()
+        const supabase = await createClient()
         
         // Get first video from first topic
         const { data: firstTopic } = await supabase
