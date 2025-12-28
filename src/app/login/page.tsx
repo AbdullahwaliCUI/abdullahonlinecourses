@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { login } from '@/lib/actions/auth'
 import Link from 'next/link'
+import LoadingSpinner from '@/components/LoadingSpinner'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -150,5 +151,17 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }
