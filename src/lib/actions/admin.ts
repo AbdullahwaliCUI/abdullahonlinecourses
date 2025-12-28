@@ -363,6 +363,90 @@ export async function upsertVideo(
   }
 }
 
+export async function deleteCourse(courseId: string) {
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser || currentUser.profile?.role !== 'admin') {
+    return { error: 'Unauthorized' }
+  }
+
+  const supabase = createAdminClient()
+
+  try {
+    const { error } = await supabase
+      .from('courses')
+      .delete()
+      .eq('id', courseId)
+
+    if (error) {
+      console.error('Error deleting course:', error)
+      return { error: 'Failed to delete course' }
+    }
+
+    revalidatePath('/admin/courses')
+    return { success: true }
+  } catch (error) {
+    console.error('Error in deleteCourse:', error)
+    return { error: 'An unexpected error occurred' }
+  }
+}
+
+export async function deleteTopic(topicId: string) {
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser || currentUser.profile?.role !== 'admin') {
+    return { error: 'Unauthorized' }
+  }
+
+  const supabase = createAdminClient()
+
+  try {
+    const { error } = await supabase
+      .from('topics')
+      .delete()
+      .eq('id', topicId)
+
+    if (error) {
+      console.error('Error deleting topic:', error)
+      return { error: 'Failed to delete topic' }
+    }
+
+    revalidatePath('/admin/courses')
+    return { success: true }
+  } catch (error) {
+    console.error('Error in deleteTopic:', error)
+    return { error: 'An unexpected error occurred' }
+  }
+}
+
+export async function deleteVideo(videoId: string) {
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser || currentUser.profile?.role !== 'admin') {
+    return { error: 'Unauthorized' }
+  }
+
+  const supabase = createAdminClient()
+
+  try {
+    const { error } = await supabase
+      .from('videos')
+      .delete()
+      .eq('id', videoId)
+
+    if (error) {
+      console.error('Error deleting video:', error)
+      return { error: 'Failed to delete video' }
+    }
+
+    revalidatePath('/admin/courses')
+    return { success: true }
+  } catch (error) {
+    console.error('Error in deleteVideo:', error)
+    return { error: 'An unexpected error occurred' }
+  }
+}
+
 export async function createTest(
   testData: {
     course_id: string

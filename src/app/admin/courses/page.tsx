@@ -2,7 +2,138 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { upsertCourse, upsertTopic, upsertVideo } from '@/lib/actions/admin'
+// ... (imports)
+import { upsertCourse, upsertTopic, upsertVideo, deleteCourse, deleteTopic, deleteVideo } from '@/lib/actions/admin'
+
+// ... (previous code)
+
+const handleDeleteCourse = async (courseId: string) => {
+  if (!window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) return
+
+  setProcessing(true)
+  try {
+    const result = await deleteCourse(courseId)
+    if (result.error) {
+      toast.error('Failed to delete course', result.error)
+    } else {
+      toast.success('Course deleted')
+      if (selectedCourse?.id === courseId) setSelectedCourse(null)
+      fetchCourses()
+    }
+  } catch (error) {
+    toast.error('Error', 'Failed to delete course')
+  } finally {
+    setProcessing(false)
+  }
+}
+
+const handleDeleteTopic = async (topicId: string) => {
+  if (!window.confirm('Are you sure you want to delete this topic?')) return
+
+  setProcessing(true)
+  try {
+    const result = await deleteTopic(topicId)
+    if (result.error) {
+      toast.error('Failed to delete topic', result.error)
+    } else {
+      toast.success('Topic deleted')
+      if (selectedTopic?.id === topicId) setSelectedTopic(null)
+      if (selectedCourse) fetchTopics(selectedCourse.id)
+    }
+  } catch (error) {
+    toast.error('Error', 'Failed to delete topic')
+  } finally {
+    setProcessing(false)
+  }
+}
+
+const handleDeleteVideo = async (videoId: string) => {
+  if (!window.confirm('Are you sure you want to delete this video?')) return
+
+  setProcessing(true)
+  try {
+    const result = await deleteVideo(videoId)
+    if (result.error) {
+      toast.error('Failed to delete video', result.error)
+    } else {
+      toast.success('Video deleted')
+      if (selectedTopic) fetchVideos(selectedTopic.id)
+    }
+  } catch (error) {
+    toast.error('Error', 'Failed to delete video')
+  } finally {
+    setProcessing(false)
+  }
+}
+
+// ... (render)
+
+// Course Item Render
+// ...
+                    <div className="flex flex-col space-y-2 ml-2">
+                        <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            openCourseModal('edit', course)
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                        Edit
+                        </button>
+                        <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteCourse(course.id)
+                        }}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                        Delete
+                        </button>
+                    </div>
+// ...
+
+// Topic Item Render
+// ...
+                    <div className="flex flex-col space-y-2 ml-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openTopicModal('edit', topic)
+                        }}
+                        className="text-green-600 hover:text-green-800 text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteTopic(topic.id)
+                        }}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+// ...
+
+// Video Item Render
+// ...
+                      <div className="flex flex-col space-y-2 ml-2">
+                        <button
+                            onClick={() => openVideoModal('edit', video)}
+                            className="text-purple-600 hover:text-purple-800 text-sm"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            onClick={() => handleDeleteVideo(video.id)}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                            Delete
+                        </button>
+                      </div>
+// ...
+
 import { courseSchema, topicSchema, videoSchema } from '@/lib/utils/validators'
 import { toast } from '@/lib/utils/toast'
 import { LoadingButton } from '@/components/LoadingSpinner'
@@ -258,6 +389,65 @@ export default function AdminCoursesPage() {
     }
   }
 
+  const handleDeleteCourse = async (courseId: string) => {
+    if (!window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) return
+
+    setProcessing(true)
+    try {
+      const result = await deleteCourse(courseId)
+      if (result.error) {
+        toast.error('Failed to delete course', result.error)
+      } else {
+        toast.success('Course deleted')
+        if (selectedCourse?.id === courseId) setSelectedCourse(null)
+        fetchCourses()
+      }
+    } catch (error) {
+      toast.error('Error', 'Failed to delete course')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const handleDeleteTopic = async (topicId: string) => {
+    if (!window.confirm('Are you sure you want to delete this topic?')) return
+
+    setProcessing(true)
+    try {
+      const result = await deleteTopic(topicId)
+      if (result.error) {
+        toast.error('Failed to delete topic', result.error)
+      } else {
+        toast.success('Topic deleted')
+        if (selectedTopic?.id === topicId) setSelectedTopic(null)
+        if (selectedCourse) fetchTopics(selectedCourse.id)
+      }
+    } catch (error) {
+      toast.error('Error', 'Failed to delete topic')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const handleDeleteVideo = async (videoId: string) => {
+    if (!window.confirm('Are you sure you want to delete this video?')) return
+
+    setProcessing(true)
+    try {
+      const result = await deleteVideo(videoId)
+      if (result.error) {
+        toast.error('Failed to delete video', result.error)
+      } else {
+        toast.success('Video deleted')
+        if (selectedTopic) fetchVideos(selectedTopic.id)
+      }
+    } catch (error) {
+      toast.error('Error', 'Failed to delete video')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   const openCourseModal = (mode: 'create' | 'edit', course?: Course) => {
     setCourseModal({ mode, course })
     setCourseForm({
@@ -355,6 +545,15 @@ export default function AdminCoursesPage() {
                       className="text-blue-600 hover:text-blue-800 text-sm"
                     >
                       Edit
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteCourse(course.id)
+                      }}
+                      className="text-red-600 hover:text-red-800 text-sm ml-2"
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>
