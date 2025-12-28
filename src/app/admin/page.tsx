@@ -2,12 +2,22 @@ import { getCurrentUser } from '@/lib/actions/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
+import { createAdminClient } from '@/lib/supabase/admin'
+
 export default async function AdminPage() {
   const user = await getCurrentUser()
 
   if (!user || user.profile?.role !== 'admin') {
     redirect('/login')
   }
+
+  const supabase = createAdminClient()
+
+  // Fetch Stats
+  const { count: studentCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student')
+  const { count: pendingCount } = await supabase.from('enrollment_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+  const { count: courseCount } = await supabase.from('courses').select('*', { count: 'exact', head: true }).eq('is_active', true)
+  const { count: topicCount } = await supabase.from('topics').select('*', { count: 'exact', head: true })
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -48,6 +58,12 @@ export default async function AdminPage() {
             >
               Scoreboard
             </Link>
+            <Link
+              href="/admin/students"
+              className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+            >
+              Students
+            </Link>
           </nav>
         </div>
 
@@ -64,7 +80,7 @@ export default async function AdminPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total Students</p>
-                <p className="text-2xl font-semibold text-gray-900">-</p>
+                <p className="text-2xl font-semibold text-gray-900">{studentCount || 0}</p>
               </div>
             </div>
           </div>
@@ -80,7 +96,7 @@ export default async function AdminPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Pending Requests</p>
-                <p className="text-2xl font-semibold text-gray-900">-</p>
+                <p className="text-2xl font-semibold text-gray-900">{pendingCount || 0}</p>
               </div>
             </div>
           </div>
@@ -96,7 +112,7 @@ export default async function AdminPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Active Courses</p>
-                <p className="text-2xl font-semibold text-gray-900">-</p>
+                <p className="text-2xl font-semibold text-gray-900">{courseCount || 0}</p>
               </div>
             </div>
           </div>
@@ -112,7 +128,7 @@ export default async function AdminPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total Topics</p>
-                <p className="text-2xl font-semibold text-gray-900">-</p>
+                <p className="text-2xl font-semibold text-gray-900">{topicCount || 0}</p>
               </div>
             </div>
           </div>
@@ -185,6 +201,23 @@ export default async function AdminPage() {
             </div>
             <p className="text-gray-600">
               View student performance metrics and course completion rates.
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/students"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center mb-4">
+              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Manage Students</h3>
+            </div>
+            <p className="text-gray-600">
+              View all students, reset passwords, and manage access.
             </p>
           </Link>
         </div>

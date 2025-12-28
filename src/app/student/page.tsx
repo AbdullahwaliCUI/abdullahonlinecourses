@@ -22,7 +22,7 @@ interface Enrollment {
 
 async function getStudentEnrollments(userId: string) {
   const supabase = await createClient()
-  
+
   const { data, error } = await supabase
     .from('enrollments')
     .select(`
@@ -30,7 +30,7 @@ async function getStudentEnrollments(userId: string) {
       courses(*)
     `)
     .eq('user_id', userId)
-    .eq('status', 'active')
+    .in('status', ['active', 'completed'])
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -45,7 +45,7 @@ async function getCourseThumbnail(courseId: string, imageUrl: string | null): Pr
   if (imageUrl) return imageUrl
 
   const supabase = await createClient()
-  
+
   // Get first video from first topic
   const { data: firstTopic } = await supabase
     .from('topics')
@@ -142,33 +142,37 @@ export default async function StudentPage() {
                     />
                   </div>
                 )}
-                
+
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${enrollment.status === 'completed'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-blue-100 text-blue-800'
+                      }`}>
                       <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      Enrolled
+                      {enrollment.status === 'completed' ? 'Completed' : 'Enrolled'}
                     </span>
                   </div>
-                  
+
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
                     {enrollment.courses.title}
                   </h3>
-                  
+
                   {enrollment.courses.description && (
                     <p className="text-gray-600 text-sm line-clamp-3 mb-4">
                       {enrollment.courses.description}
                     </p>
                   )}
-                  
-                  <div className="flex items-center justify-between">
+
+                  <div className="flex items-center justify-between mt-4">
                     <span className="text-sm text-gray-500">
                       Enrolled {new Date(enrollment.created_at).toLocaleDateString()}
                     </span>
+
                     <span className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
-                      Continue Learning
+                      {enrollment.status === 'completed' ? 'Review Course' : 'Continue Learning'}
                       <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>

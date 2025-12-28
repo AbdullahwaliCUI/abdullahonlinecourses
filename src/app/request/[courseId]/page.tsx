@@ -236,11 +236,11 @@ export default function RequestEnrollmentPage() {
                 <p className="text-blue-800">
                   <strong>JazzCash Number:</strong> 
                   <span className="ml-2 text-lg font-mono bg-yellow-100 px-2 py-1 rounded">
-                    {jazzCashNumber}
+                    +923046983794
                   </span>
                 </p>
                 <p className="text-sm text-blue-700">
-                  Contact admin for course pricing information
+                  You can also pay via EasyPaisa, Bank Transfer, or any other method. Contact admin for pricing and alternative payment options.
                 </p>
               </div>
             </div>
@@ -329,19 +329,22 @@ export default function RequestEnrollmentPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                JazzCash Transaction ID *
+                Bank Transaction ID *
               </label>
               <input
                 type="text"
                 name="transaction_id"
                 value={formData.transaction_id}
                 onChange={handleInputChange}
-                placeholder="Enter your JazzCash transaction ID"
+                placeholder="Enter transaction ID from any bank (JazzCash, EasyPaisa, Bank Transfer, etc.)"
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.transaction_id ? 'border-red-300' : 'border-gray-300'
                 }`}
                 required
               />
+              <p className="mt-1 text-sm text-gray-500">
+                Transaction ID from JazzCash, EasyPaisa, Bank Transfer, or any other payment method
+              </p>
               {errors.transaction_id && (
                 <p className="mt-1 text-sm text-red-600">{errors.transaction_id}</p>
               )}
@@ -349,21 +352,20 @@ export default function RequestEnrollmentPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Receipt Screenshot URL *
+                Receipt Screenshot URL (Optional)
               </label>
               <input
                 type="url"
                 name="receipt_url"
                 value={formData.receipt_url}
                 onChange={handleInputChange}
-                placeholder="https://drive.google.com/... or GitHub raw URL"
+                placeholder="https://drive.google.com/... or GitHub raw URL (optional)"
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.receipt_url ? 'border-red-300' : 'border-gray-300'
                 }`}
-                required
               />
               <p className="mt-1 text-sm text-gray-500">
-                Upload your payment screenshot to Google Drive, GitHub, or similar service and paste the public link here
+                Optional: Upload your payment screenshot to Google Drive, GitHub, or similar service and paste the public link here
               </p>
               {errors.receipt_url && (
                 <p className="mt-1 text-sm text-red-600">{errors.receipt_url}</p>

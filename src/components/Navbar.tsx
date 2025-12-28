@@ -37,6 +37,8 @@ export default function Navbar() {
     try {
       await logout()
       setUser(null)
+      // Force page reload to ensure complete logout
+      window.location.href = '/'
     } catch (error) {
       console.error('Logout error:', error)
     }

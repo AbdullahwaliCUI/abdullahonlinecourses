@@ -39,10 +39,16 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/request/') ||
     pathname === '/login' ||
     pathname.startsWith('/api/courses') ||
-    pathname.startsWith('/api/requests')
+    pathname.startsWith('/api/requests') ||
+    pathname.startsWith('/api/debug')
 
   // Allow access to public routes
   if (isPublicRoute) {
+    return supabaseResponse
+  }
+
+  // Admin API routes - handle authentication within the route
+  if (pathname.startsWith('/api/admin/')) {
     return supabaseResponse
   }
 

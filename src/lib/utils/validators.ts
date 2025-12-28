@@ -109,7 +109,9 @@ export const enrollmentRequestSchema = z.object({
     .trim(),
   receipt_url: z.string()
     .url('Invalid URL format')
-    .refine(isValidReceiptUrl, 'Receipt URL must be a valid HTTPS link from GitHub, Google Drive, or other supported CDN'),
+    .refine(isValidReceiptUrl, 'Receipt URL must be a valid HTTPS link from GitHub, Google Drive, or other supported CDN')
+    .optional()
+    .or(z.literal('')),
   notes: z.string()
     .max(500, 'Notes must be less than 500 characters')
     .optional()
@@ -153,7 +155,6 @@ export const courseSchema = z.object({
     .max(200, 'Course title must be less than 200 characters')
     .trim(),
   description: z.string()
-    .min(10, 'Course description must be at least 10 characters')
     .max(1000, 'Course description must be less than 1000 characters')
     .trim()
     .optional()
@@ -161,7 +162,6 @@ export const courseSchema = z.object({
   image_url: z.string()
     .url('Invalid image URL format')
     .refine(isHttpsUrl, 'Image URL must be HTTPS')
-    .refine((url) => isGitHubRawUrl(url) || isYouTubeUrl(url), 'Image URL must be from GitHub raw or YouTube thumbnail')
     .optional()
     .or(z.literal(''))
 })

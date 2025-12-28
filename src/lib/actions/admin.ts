@@ -12,16 +12,26 @@ export async function verifyRequest(
   password: string,
   notes?: string
 ) {
+  console.log('=== verifyRequest called ===')
+  console.log('Request ID:', requestId)
+  console.log('Email:', finalEmail)
+  console.log('Password length:', password?.length)
+
   const currentUser = await getCurrentUser()
+  console.log('Current user:', currentUser ? 'Found' : 'Not found')
+  console.log('User role:', currentUser?.profile?.role)
 
   if (!currentUser || currentUser.profile?.role !== 'admin') {
+    console.log('Authorization failed')
     return { error: 'Unauthorized' }
   }
 
   const supabase = createAdminClient()
+  console.log('Admin client created')
 
   try {
     // Get the enrollment request
+    console.log('Fetching enrollment request...')
     const { data: request, error: requestError } = await supabase
       .from('enrollment_requests')
       .select('*')
@@ -29,11 +39,15 @@ export async function verifyRequest(
       .eq('status', 'pending')
       .single()
 
+    console.log('Request fetch result:', { request: !!request, error: requestError })
+
     if (requestError || !request) {
+      console.log('Request not found or error:', requestError)
       return { error: 'Request not found or already processed' }
     }
 
     // Create Supabase Auth user
+    console.log('Creating Supabase auth user...')
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: finalEmail,
       password: password,
@@ -41,8 +55,15 @@ export async function verifyRequest(
       user_metadata: {
         full_name: request.full_name,
         phone: request.phone,
-        role: 'student'
+        role: 'student',
+        password: password
       }
+    })
+
+    console.log('Auth user creation result:', {
+      success: !!authData.user,
+      userId: authData.user?.id,
+      error: authError
     })
 
     if (authError || !authData.user) {
@@ -51,6 +72,7 @@ export async function verifyRequest(
     }
 
     // Create enrollment
+    console.log('Creating enrollment...')
     const { error: enrollmentError } = await supabase
       .from('enrollments')
       .insert({
@@ -59,16 +81,21 @@ export async function verifyRequest(
         status: 'active'
       })
 
+    console.log('Enrollment creation result:', { error: enrollmentError })
+
     if (enrollmentError) {
       console.error('Error creating enrollment:', enrollmentError)
       return { error: 'Failed to create enrollment' }
     }
 
     // Initialize first topic progress
+    console.log('Initializing first topic progress...')
     const progressResult = await initializeFirstTopicOnActivation(
       authData.user.id,
       request.course_id
     )
+
+    console.log('Progress initialization result:', progressResult)
 
     if (progressResult.error) {
       console.error('Error initializing progress:', progressResult.error)
@@ -76,6 +103,7 @@ export async function verifyRequest(
     }
 
     // Update enrollment request
+    console.log('Updating enrollment request status...')
     const { error: updateError } = await supabase
       .from('enrollment_requests')
       .update({
@@ -87,6 +115,8 @@ export async function verifyRequest(
       })
       .eq('id', requestId)
 
+    console.log('Request update result:', { error: updateError })
+
     if (updateError) {
       console.error('Error updating request:', updateError)
       return { error: 'Failed to update request status' }
@@ -94,6 +124,7 @@ export async function verifyRequest(
 
     revalidatePath('/admin/requests')
 
+    console.log('=== verifyRequest completed successfully ===')
     return {
       success: true,
       email: finalEmail,

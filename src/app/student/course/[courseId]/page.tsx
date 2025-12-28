@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getVideoIdFromUrl, getThumbnailUrl } from '@/lib/utils/youtube'
+import CertificateDownloader from '@/components/CertificateDownloader'
 
 interface Course {
   id: string
@@ -39,7 +40,7 @@ interface Enrollment {
 
 async function getCourse(courseId: string): Promise<Course | null> {
   const supabase = await createClient()
-  
+
   const { data: course, error } = await supabase
     .from('courses')
     .select('*')
@@ -57,7 +58,7 @@ async function getCourse(courseId: string): Promise<Course | null> {
 
 async function getTopics(courseId: string): Promise<Topic[]> {
   const supabase = await createClient()
-  
+
   const { data: topics, error } = await supabase
     .from('topics')
     .select('*')
@@ -74,7 +75,7 @@ async function getTopics(courseId: string): Promise<Topic[]> {
 
 async function getUserProgress(userId: string, courseId: string): Promise<Progress[]> {
   const supabase = await createClient()
-  
+
   const { data: progress, error } = await supabase
     .from('progress')
     .select('*')
@@ -89,25 +90,26 @@ async function getUserProgress(userId: string, courseId: string): Promise<Progre
   return progress as Progress[]
 }
 
-async function checkEnrollment(userId: string, courseId: string): Promise<boolean> {
+async function getEnrollment(userId: string, courseId: string) {
   const supabase = await createClient()
-  
+
   const { data: enrollment, error } = await supabase
     .from('enrollments')
-    .select('id')
+    .select('id, status')
     .eq('user_id', userId)
     .eq('course_id', courseId)
-    .eq('status', 'active')
+    .in('status', ['active', 'completed']) // Allow active or completed
     .single()
 
-  return !error && !!enrollment
+  if (error || !enrollment) return null
+  return enrollment
 }
 
 async function getCourseThumbnail(courseId: string, imageUrl: string | null): Promise<string | null> {
   if (imageUrl) return imageUrl
 
   const supabase = await createClient()
-  
+
   // Get first video from first topic
   const { data: firstTopic } = await supabase
     .from('topics')
@@ -132,10 +134,10 @@ async function getCourseThumbnail(courseId: string, imageUrl: string | null): Pr
   return videoId ? getThumbnailUrl(videoId) : null
 }
 
-export default async function StudentCoursePage({ 
-  params 
-}: { 
-  params: Promise<{ courseId: string }> 
+export default async function StudentCoursePage({
+  params
+}: {
+  params: Promise<{ courseId: string }>
 }) {
   const { courseId } = await params
   const user = await getCurrentUser()
@@ -145,8 +147,8 @@ export default async function StudentCoursePage({
   }
 
   // Check if user is enrolled
-  const isEnrolled = await checkEnrollment(user.id, courseId)
-  if (!isEnrolled) {
+  const enrollment = await getEnrollment(user.id, courseId)
+  if (!enrollment) {
     redirect('/student')
   }
 
@@ -189,14 +191,14 @@ export default async function StudentCoursePage({
                   />
                 </div>
               )}
-              
+
               <div className="p-8">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h1 className="text-3xl font-bold text-gray-900 mb-4">
                       {course.title}
                     </h1>
-                    
+
                     {course.description && (
                       <p className="text-gray-600 text-lg leading-relaxed mb-6">
                         {course.description}
@@ -257,7 +259,7 @@ export default async function StudentCoursePage({
                     <span>{totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0}%` }}
                     ></div>
@@ -265,7 +267,23 @@ export default async function StudentCoursePage({
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex space-x-4">
+                <div className="flex space-x-4 items-center">
+                  {enrollment.status === 'completed' ? (
+                    <CertificateDownloader
+                      studentName={user.profile?.full_name || 'Student'}
+                      courseName={course.title}
+                      date={new Date().toLocaleDateString()}
+                      className="px-6 py-3 rounded-lg text-sm font-medium" // Styling to match other buttons slightly
+                    />
+                  ) : (
+                    <button
+                      disabled
+                      className="bg-gray-100 text-gray-400 px-6 py-3 rounded-lg cursor-not-allowed font-medium border border-gray-200"
+                    >
+                      Certificate Pending
+                    </button>
+                  )}
+
                   <Link
                     href={`/student/scoreboard/${courseId}`}
                     className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium"
@@ -289,7 +307,7 @@ export default async function StudentCoursePage({
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900">Course Topics</h2>
               </div>
-              
+
               <div className="max-h-96 overflow-y-auto">
                 {topics.length === 0 ? (
                   <div className="p-6 text-center text-gray-500">
@@ -327,11 +345,10 @@ export default async function StudentCoursePage({
                                   </div>
                                 )}
                               </div>
-                              
+
                               <div className="flex-1 min-w-0">
-                                <h3 className={`text-sm font-medium ${
-                                  isUnlocked ? 'text-gray-900' : 'text-gray-400'
-                                }`}>
+                                <h3 className={`text-sm font-medium ${isUnlocked ? 'text-gray-900' : 'text-gray-400'
+                                  }`}>
                                   {topic.title}
                                 </h3>
                                 {isCompleted && (

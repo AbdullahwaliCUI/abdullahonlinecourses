@@ -274,14 +274,18 @@ export default function AdminRequestsPage() {
                         {request.transaction_id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <a
-                          href={request.receipt_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                          View Receipt →
-                        </a>
+                        {request.receipt_url ? (
+                          <a
+                            href={request.receipt_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            View Receipt →
+                          </a>
+                        ) : (
+                          <span className="text-gray-400 text-sm italic">No receipt attached</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <button
@@ -311,7 +315,7 @@ export default function AdminRequestsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Verify & Create Student Account</h3>
-            
+
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">
                 <strong>Student:</strong> {verifyModal.fullName}
@@ -389,7 +393,7 @@ export default function AdminRequestsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Reject Enrollment Request</h3>
-            
+
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">
                 <strong>Student:</strong> {rejectModal.fullName}

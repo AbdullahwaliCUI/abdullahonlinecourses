@@ -57,19 +57,18 @@ export async function logout() {
     const { error } = await supabase.auth.signOut()
 
     if (error) {
+      console.error('Logout error:', error)
       return { error: error.message }
     }
 
     // Revalidate the current path to update auth state
     revalidatePath('/', 'layout')
-
-    // Return success to trigger redirect in component or redirect here if safe
+    
+    return { success: true }
   } catch (error: any) {
     console.error('Logout error:', error)
     return { error: 'Failed to logout' }
   }
-
-  redirect('/')
 }
 
 
