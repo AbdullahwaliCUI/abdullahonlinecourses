@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Define public routes that don't require authentication
-  const isPublicRoute = 
+  const isPublicRoute =
     pathname === '/' ||
     pathname.startsWith('/courses') ||
     pathname.startsWith('/request/') ||
@@ -68,8 +68,8 @@ export async function middleware(request: NextRequest) {
 
   // Admin routes protection: /admin*
   if (pathname.startsWith('/admin')) {
-    if (!profile || profile.role !== 'admin') {
-      // If logged in but not admin, redirect to student dashboard
+    if (!profile || (profile.role !== 'admin' && profile.role !== 'instructor')) {
+      // If logged in but not admin/instructor, redirect to student dashboard
       if (profile && profile.role === 'student') {
         const redirectUrl = new URL('/student', request.url)
         return NextResponse.redirect(redirectUrl)

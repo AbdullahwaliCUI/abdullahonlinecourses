@@ -7,9 +7,11 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export default async function AdminPage() {
   const user = await getCurrentUser()
 
-  if (!user || user.profile?.role !== 'admin') {
+  if (!user || (user.profile?.role !== 'admin' && user.profile?.role !== 'instructor')) {
     redirect('/login')
   }
+
+  const isAdmin = user.profile?.role === 'admin'
 
   const supabase = createAdminClient()
 
@@ -64,6 +66,14 @@ export default async function AdminPage() {
             >
               Students
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin/instructors"
+                className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+              >
+                Instructors
+              </Link>
+            )}
           </nav>
         </div>
 
@@ -220,6 +230,25 @@ export default async function AdminPage() {
               View all students, reset passwords, and manage access.
             </p>
           </Link>
+
+          {isAdmin && (
+            <Link
+              href="/admin/instructors"
+              className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Instructors</h3>
+              </div>
+              <p className="text-gray-600">
+                Assign instructors to courses and manage permissions.
+              </p>
+            </Link>
+          )}
         </div>
       </div>
     </main>
