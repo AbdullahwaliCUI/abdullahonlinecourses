@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { LoadingButton } from '@/components/LoadingSpinner'
+import LoadingSpinner from '@/components/LoadingSpinner'
 import { toast } from '@/lib/utils/toast'
 import { createInstructorUser } from '@/lib/actions/admin'
 

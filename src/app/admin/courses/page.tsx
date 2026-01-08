@@ -2,138 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-// ... (imports)
 import { upsertCourse, upsertTopic, upsertVideo, deleteCourse, deleteTopic, deleteVideo } from '@/lib/actions/admin'
-
-// ... (previous code)
-
-const handleDeleteCourse = async (courseId: string) => {
-  if (!window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) return
-
-  setProcessing(true)
-  try {
-    const result = await deleteCourse(courseId)
-    if (result.error) {
-      toast.error('Failed to delete course', result.error)
-    } else {
-      toast.success('Course deleted')
-      if (selectedCourse?.id === courseId) setSelectedCourse(null)
-      fetchCourses()
-    }
-  } catch (error) {
-    toast.error('Error', 'Failed to delete course')
-  } finally {
-    setProcessing(false)
-  }
-}
-
-const handleDeleteTopic = async (topicId: string) => {
-  if (!window.confirm('Are you sure you want to delete this topic?')) return
-
-  setProcessing(true)
-  try {
-    const result = await deleteTopic(topicId)
-    if (result.error) {
-      toast.error('Failed to delete topic', result.error)
-    } else {
-      toast.success('Topic deleted')
-      if (selectedTopic?.id === topicId) setSelectedTopic(null)
-      if (selectedCourse) fetchTopics(selectedCourse.id)
-    }
-  } catch (error) {
-    toast.error('Error', 'Failed to delete topic')
-  } finally {
-    setProcessing(false)
-  }
-}
-
-const handleDeleteVideo = async (videoId: string) => {
-  if (!window.confirm('Are you sure you want to delete this video?')) return
-
-  setProcessing(true)
-  try {
-    const result = await deleteVideo(videoId)
-    if (result.error) {
-      toast.error('Failed to delete video', result.error)
-    } else {
-      toast.success('Video deleted')
-      if (selectedTopic) fetchVideos(selectedTopic.id)
-    }
-  } catch (error) {
-    toast.error('Error', 'Failed to delete video')
-  } finally {
-    setProcessing(false)
-  }
-}
-
-// ... (render)
-
-// Course Item Render
-// ...
-                    <div className="flex flex-col space-y-2 ml-2">
-                        <button
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            openCourseModal('edit', course)
-                        }}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                        Edit
-                        </button>
-                        <button
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            handleDeleteCourse(course.id)
-                        }}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                        >
-                        Delete
-                        </button>
-                    </div>
-// ...
-
-// Topic Item Render
-// ...
-                    <div className="flex flex-col space-y-2 ml-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openTopicModal('edit', topic)
-                        }}
-                        className="text-green-600 hover:text-green-800 text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            handleDeleteTopic(topic.id)
-                        }}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                      >
-                        Delete
-                      </button>
-                    </div>
-// ...
-
-// Video Item Render
-// ...
-                      <div className="flex flex-col space-y-2 ml-2">
-                        <button
-                            onClick={() => openVideoModal('edit', video)}
-                            className="text-purple-600 hover:text-purple-800 text-sm"
-                        >
-                            Edit
-                        </button>
-                        <button
-                            onClick={() => handleDeleteVideo(video.id)}
-                            className="text-red-600 hover:text-red-800 text-sm"
-                        >
-                            Delete
-                        </button>
-                      </div>
-// ...
-
 import { courseSchema, topicSchema, videoSchema } from '@/lib/utils/validators'
 import { toast } from '@/lib/utils/toast'
 import { LoadingButton } from '@/components/LoadingSpinner'
@@ -537,24 +406,26 @@ export default function AdminCoursesPage() {
                         </span>
                       </div>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        openCourseModal('edit', course)
-                      }}
-                      className="text-blue-600 hover:text-blue-800 text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteCourse(course.id)
-                      }}
-                      className="text-red-600 hover:text-red-800 text-sm ml-2"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex flex-col space-y-2 ml-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openCourseModal('edit', course)
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteCourse(course.id)
+                        }}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -602,15 +473,26 @@ export default function AdminCoursesPage() {
                           <h3 className="font-medium text-gray-900">{topic.title}</h3>
                         </div>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openTopicModal('edit', topic)
-                        }}
-                        className="text-green-600 hover:text-green-800 text-sm"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex flex-col space-y-2 ml-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openTopicModal('edit', topic)
+                          }}
+                          className="text-green-600 hover:text-green-800 text-sm"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteTopic(topic.id)
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -667,12 +549,20 @@ export default function AdminCoursesPage() {
                           </a>
                         )}
                       </div>
-                      <button
-                        onClick={() => openVideoModal('edit', video)}
-                        className="text-purple-600 hover:text-purple-800 text-sm"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex flex-col space-y-2 ml-2">
+                        <button
+                          onClick={() => openVideoModal('edit', video)}
+                          className="text-purple-600 hover:text-purple-800 text-sm"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteVideo(video.id)}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -717,31 +607,22 @@ export default function AdminCoursesPage() {
                 <input
                   type="url"
                   value={courseForm.image_url}
-                  onChange={(e) => {
-                    let val = e.target.value
-                    // Auto-convert YouTube URL to Thumbnail
-                    const ytMatch = val.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)
-                    if (ytMatch && ytMatch[1]) {
-                      val = `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`
-                      toast.success('YouTube Thumbnail Detected', 'Converted video link to thumbnail image.')
-                    }
-                    setCourseForm({ ...courseForm, image_url: val })
-                  }}
+                  onChange={(e) => setCourseForm({ ...courseForm, image_url: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://... or Paste a YouTube Video Link"
+                  placeholder="https://..."
                 />
-                <p className="text-xs text-gray-500 mt-1">Tip: Paste a YouTube video link to automatically get its thumbnail.</p>
               </div>
             </div>
 
             <div className="flex space-x-3 mt-6">
-              <button
+              <LoadingButton
                 onClick={handleCourseSubmit}
-                disabled={processing || !courseForm.title}
+                loading={processing}
+                disabled={!courseForm.title}
                 className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {processing ? 'Saving...' : 'Save Course'}
-              </button>
+                Save Course
+              </LoadingButton>
               <button
                 onClick={() => setCourseModal(null)}
                 disabled={processing}
@@ -788,13 +669,14 @@ export default function AdminCoursesPage() {
             </div>
 
             <div className="flex space-x-3 mt-6">
-              <button
+              <LoadingButton
                 onClick={handleTopicSubmit}
-                disabled={processing || !topicForm.title}
+                loading={processing}
+                disabled={!topicForm.title}
                 className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50"
               >
-                {processing ? 'Saving...' : 'Save Topic'}
-              </button>
+                Save Topic
+              </LoadingButton>
               <button
                 onClick={() => setTopicModal(null)}
                 disabled={processing}
@@ -852,13 +734,14 @@ export default function AdminCoursesPage() {
             </div>
 
             <div className="flex space-x-3 mt-6">
-              <button
+              <LoadingButton
                 onClick={handleVideoSubmit}
-                disabled={processing || !videoForm.title || !videoForm.youtube_url}
+                loading={processing}
+                disabled={!videoForm.title || !videoForm.youtube_url}
                 className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50"
               >
-                {processing ? 'Saving...' : 'Save Video'}
-              </button>
+                Save Video
+              </LoadingButton>
               <button
                 onClick={() => setVideoModal(null)}
                 disabled={processing}
