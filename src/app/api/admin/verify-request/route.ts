@@ -3,7 +3,9 @@ import { verifyRequest } from '@/lib/actions/admin'
 
 export async function POST(request: NextRequest) {
   try {
-    const { requestId, finalEmail, password, notes } = await request.json()
+    const { requestId, email, password, notes } = await request.json()
+    // Map email to finalEmail for internal function use
+    const finalEmail = email
 
     if (!requestId || !finalEmail || !password) {
       return NextResponse.json(

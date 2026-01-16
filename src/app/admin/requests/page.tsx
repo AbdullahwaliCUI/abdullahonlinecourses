@@ -336,7 +336,7 @@ export default function AdminRequestsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Verify & Create Student Account</h3>
-            
+
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">
                 <strong>Student:</strong> {verifyModal.fullName}
@@ -376,7 +376,7 @@ export default function AdminRequestsPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 z-10 cursor-pointer"
                   >
                     {showPassword ? (
                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -433,7 +433,7 @@ export default function AdminRequestsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Reject Enrollment Request</h3>
-            
+
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">
                 <strong>Student:</strong> {rejectModal.fullName}
