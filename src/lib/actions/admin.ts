@@ -586,3 +586,31 @@ export async function deleteVideo(videoId: string) {
     return { error: 'An unexpected error occurred' }
   }
 }
+
+export async function deleteTest(testId: string) {
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser || currentUser.profile?.role !== 'admin') {
+    return { error: 'Unauthorized' }
+  }
+
+  const supabase = createAdminClient()
+
+  try {
+    const { error } = await supabase
+      .from('tests')
+      .delete()
+      .eq('id', testId)
+
+    if (error) {
+      console.error('Error deleting test:', error)
+      return { error: 'Failed to delete test' }
+    }
+
+    revalidatePath('/admin/tests')
+    return { success: true }
+  } catch (error) {
+    console.error('Error in deleteTest:', error)
+    return { error: 'An unexpected error occurred' }
+  }
+}
