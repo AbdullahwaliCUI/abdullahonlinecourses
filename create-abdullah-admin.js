@@ -81,20 +81,23 @@ async function createAdmin() {
 }
 
 async function upsertProfile(userId, email, fullName) {
+    console.log('Updating profile for:', userId);
+    const payload = {
+        full_name: fullName,
+        role: 'admin',
+        updated_at: new Date().toISOString()
+    };
+    console.log('Update payload:', payload);
+
     const { error: profileError } = await supabase
         .from('profiles')
-        .upsert({
-            id: userId,
-            email: email,
-            full_name: fullName,
-            role: 'admin',
-            created_at: new Date().toISOString()
-        });
+        .update(payload)
+        .eq('id', userId);
 
     if (profileError) {
-        console.error('Error creating/updating profile:', profileError);
+        console.error('Error updating profile:', profileError);
     } else {
-        console.log('Profile created/updated with Admin role.');
+        console.log('Profile updated with Admin role.');
     }
 }
 
