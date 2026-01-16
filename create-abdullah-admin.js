@@ -21,45 +21,62 @@ const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE
 
 async function createAdmin() {
     const email = 'abdullahwale@gmail.com';
-    const password = 'admin123'; // Setting a default password
+    const password = 'admin123';
     const fullName = 'Abdullah Wali';
 
-    console.log(`Creating admin user: ${email}...`);
+    console.log(`Processing admin user: ${email}...`);
 
-    // 1. Create User
-    const { data: userData, error: createError } = await supabase.auth.admin.createUser({
-        email: email,
-        password: password,
-        email_confirm: true,
-        user_metadata: {
-            full_name: fullName,
-            role: 'admin'
-        }
-    });
-
-    if (createError) {
-        console.error('Error creating user:', createError.message);
-        // If user already exists, try to update password and role
-        if (createError.message.includes('already has been registered')) {
-            console.log('User exists, updating password and role...');
-            // Find user ID
-            const { data: users } = await supabase.auth.admin.listUsers();
-            const user = users.users.find(u => u.email === email);
-
-            if (user) {
-                await supabase.auth.admin.updateUserById(user.id, { password: password, user_metadata: { role: 'admin' } });
-                // Ensure profile
-                await upsertProfile(user.id, email, fullName);
-                console.log('User updated successfully.');
-                return;
-            }
-        }
+    // 1. Check if user exists
+    const { data: users, error: listError } = await supabase.auth.admin.listUsers();
+    if (listError) {
+        console.error('Error listing users:', listError);
         return;
     }
 
-    if (userData.user) {
-        console.log('Auth user created. ID:', userData.user.id);
-        await upsertProfile(userData.user.id, email, fullName);
+    const existingUser = users.users.find(u => u.email === email);
+    let userId;
+
+    if (existingUser) {
+        console.log(`User already exists (ID: ${existingUser.id}). Updating password and role...`);
+        userId = existingUser.id;
+
+        const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
+            password: password,
+            email_confirm: true,
+            user_metadata: {
+                full_name: fullName,
+                role: 'admin'
+            }
+        });
+
+        if (updateError) {
+            console.error('Error updating user:', updateError.message);
+            return;
+        }
+        console.log('User auth updated successfully.');
+    } else {
+        console.log('User does not exist. Creating new user...');
+        const { data: createData, error: createError } = await supabase.auth.admin.createUser({
+            email: email,
+            password: password,
+            email_confirm: true,
+            user_metadata: {
+                full_name: fullName,
+                role: 'admin'
+            }
+        });
+
+        if (createError) {
+            console.error('Error creating user:', createError.message);
+            return;
+        }
+        userId = createData.user.id;
+        console.log(`User created successfully (ID: ${userId}).`);
+    }
+
+    // 2. Ensure profile exists
+    if (userId) {
+        await upsertProfile(userId, email, fullName);
     }
 }
 
