@@ -84,8 +84,7 @@ async function upsertProfile(userId, email, fullName) {
     console.log('Updating profile for:', userId);
     const payload = {
         full_name: fullName,
-        role: 'admin',
-        updated_at: new Date().toISOString()
+        role: 'admin'
     };
     console.log('Update payload:', payload);
 
