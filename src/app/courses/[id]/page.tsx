@@ -20,6 +20,7 @@ interface Topic {
   course_id: string
   title: string
   order_index: number
+  is_preview: boolean
   created_at: string
 }
 
@@ -120,8 +121,8 @@ export default async function CourseDetailsPage({
   const { topics, visibleCount, totalCount } = topicsData
 
   // Determine which topics to show
-  const visibleTopics = isActive ? topics : topics.slice(0, visibleCount)
-  const hiddenTopicsCount = totalCount - visibleTopics.length
+  const visibleTopics = topics
+  const hiddenTopicsCount = 0 // We now show all topics, but lock them if not enrolled/preview
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -205,18 +206,29 @@ export default async function CourseDetailsPage({
                     {topic.title}
                   </h3>
                   {!isActive && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      Preview only - Full content available after enrollment
-                    </p>
+                    <div className="mt-1">
+                      {topic.is_preview ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                          Free Preview
+                        </span>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          Enroll to access
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 
-                {isActive ? (
+                {isActive || topic.is_preview ? (
                   <Link
                     href={`/student/course/${courseId}/topic/${topic.id}`}
-                    className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                    className={`font-medium flex items-center ${isActive
+                        ? 'text-blue-600 hover:text-blue-800'
+                        : 'text-green-600 hover:text-green-800'
+                      }`}
                   >
-                    Start Learning
+                    {isActive ? 'Start Learning' : 'Watch Preview'}
                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>

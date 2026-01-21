@@ -11,6 +11,7 @@ interface Topic {
   course_id: string
   title: string
   order_index: number
+  is_preview: boolean
 }
 
 interface Video {
@@ -93,9 +94,9 @@ export default function StudentTopicPage() {
         return
       }
 
-      // Check if topic is unlocked
-      if (progressRes.error || !progressRes.data?.is_unlocked) {
-        console.error('Topic not unlocked:', progressRes.error)
+      // Check if topic is unlocked or is preview
+      if ((!progressRes.data?.is_unlocked) && (!topicRes.data.is_preview)) {
+        console.error('Topic not unlocked and not preview:', progressRes.error)
         router.push(`/student/course/${courseId}`)
         return
       }
@@ -220,7 +221,8 @@ export default function StudentTopicPage() {
             </div>
 
             <div className="ml-6 flex space-x-3">
-              {!progress?.is_completed && (
+              {/* Only show Mark Completed if we have progress (enrolled) and not completed */}
+              {progress && !progress.is_completed && (
                 <button
                   onClick={handleMarkCompleted}
                   disabled={completing}
@@ -271,7 +273,7 @@ export default function StudentTopicPage() {
                             Watch on YouTube →
                           </a>
                         )}
-                        {video.helper_material_url && (
+                        {video.helper_material_url && progress?.is_unlocked && (
                           <a
                             href={video.helper_material_url}
                             target="_blank"
@@ -332,8 +334,8 @@ export default function StudentTopicPage() {
                       </div>
                     ) : null}
 
-                    {/* Document URL */}
-                    {video.document_url && (
+                    {/* Document URL - Only show if enrolled/unlocked */}
+                    {video.document_url && progress?.is_unlocked && (
                       <div className="mt-4 pt-4 border-t border-gray-100">
                         <h4 className="text-sm font-medium text-gray-900 mb-2">Attached Document</h4>
                         <a
@@ -356,8 +358,8 @@ export default function StudentTopicPage() {
           </div>
         )}
 
-        {/* Completion Section */}
-        {!progress?.is_completed && videos.length > 0 && (
+        {/* Completion Section - Only for enrolled users */}
+        {progress && !progress.is_completed && videos.length > 0 && (
           <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">

@@ -23,6 +23,7 @@ interface Topic {
   course_id: string
   title: string
   order_index: number
+  is_preview?: boolean
   created_at: string
 }
 
@@ -52,7 +53,7 @@ export default function AdminCoursesPage() {
 
   // Form states
   const [courseForm, setCourseForm] = useState({ title: '', description: '', image_url: '' })
-  const [topicForm, setTopicForm] = useState({ title: '', order_index: 1 })
+  const [topicForm, setTopicForm] = useState({ title: '', order_index: 1, is_preview: false })
   const [videoForm, setVideoForm] = useState({
     title: '',
     youtube_url: '',
@@ -186,7 +187,8 @@ export default function AdminCoursesPage() {
       const validatedData = topicSchema.parse({
         title: topicForm.title,
         course_id: selectedCourse.id,
-        order_index: topicForm.order_index
+        order_index: topicForm.order_index,
+        is_preview: topicForm.is_preview
       })
 
       const result = await upsertTopic({
@@ -340,7 +342,8 @@ export default function AdminCoursesPage() {
     setTopicModal({ mode, topic })
     setTopicForm({
       title: topic?.title || '',
-      order_index: topic?.order_index || (topics.length + 1)
+      order_index: topic?.order_index || (topics.length + 1),
+      is_preview: topic?.is_preview || false
     })
   }
 
@@ -483,6 +486,11 @@ export default function AdminCoursesPage() {
                             {topic.order_index}
                           </span>
                           <h3 className="font-medium text-gray-900">{topic.title}</h3>
+                          {topic.is_preview && (
+                            <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded">
+                              Preview
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex flex-col space-y-2 ml-2">
@@ -699,6 +707,19 @@ export default function AdminCoursesPage() {
                   min="1"
                   required
                 />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  id="is_preview"
+                  type="checkbox"
+                  checked={topicForm.is_preview}
+                  onChange={(e) => setTopicForm({ ...topicForm, is_preview: e.target.checked })}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                />
+                <label htmlFor="is_preview" className="ml-2 block text-sm text-gray-900">
+                  Free Preview (Visible to guests)
+                </label>
               </div>
             </div>
 

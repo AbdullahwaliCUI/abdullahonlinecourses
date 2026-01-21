@@ -249,7 +249,8 @@ export async function upsertTopic(
         .insert({
           course_id: topicData.course_id,
           title: topicData.title,
-          order_index: topicData.order_index
+          order_index: topicData.order_index,
+          is_preview: topicData.is_preview || false
         })
         .select()
         .single()
