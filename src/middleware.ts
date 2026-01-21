@@ -40,7 +40,8 @@ export async function middleware(request: NextRequest) {
     pathname === '/login' ||
     pathname.startsWith('/api/courses') ||
     pathname.startsWith('/api/requests') ||
-    pathname.startsWith('/api/debug')
+    pathname.startsWith('/api/debug') ||
+    pathname.startsWith('/student/course/')
 
   // Allow access to public routes
   if (isPublicRoute) {
