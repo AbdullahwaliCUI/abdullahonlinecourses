@@ -210,9 +210,6 @@ export const videoSchema = z.object({
     .optional()
     .or(z.literal('')),
   topic_id: z.string().uuid('Invalid topic ID')
-}).refine(data => data.youtube_url || data.admin_video_url, {
-  message: "Either YouTube URL or Admin Video URL must be provided",
-  path: ["youtube_url"]
 })
 
 export type VideoData = z.infer<typeof videoSchema>

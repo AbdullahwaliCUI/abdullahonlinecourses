@@ -793,7 +793,7 @@ export default function AdminCoursesPage() {
               <LoadingButton
                 onClick={handleVideoSubmit}
                 loading={processing}
-                disabled={!videoForm.title || (!videoForm.youtube_url && !videoForm.admin_video_url)}
+                disabled={!videoForm.title}
                 className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50"
               >
                 Save Video
