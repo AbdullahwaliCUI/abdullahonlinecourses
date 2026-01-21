@@ -272,8 +272,10 @@ export async function upsertVideo(
     id?: string
     topic_id: string
     title: string
-    youtube_url: string
+    youtube_url?: string
+    admin_video_url?: string
     helper_material_url?: string
+    document_url?: string
   }
 ) {
   const currentUser = await getCurrentUser()
@@ -291,8 +293,10 @@ export async function upsertVideo(
         .from('videos')
         .update({
           title: videoData.title,
-          youtube_url: videoData.youtube_url,
-          helper_material_url: videoData.helper_material_url || null
+          youtube_url: videoData.youtube_url || null,
+          admin_video_url: videoData.admin_video_url || null,
+          helper_material_url: videoData.helper_material_url || null,
+          document_url: videoData.document_url || null
         })
         .eq('id', videoData.id)
         .select()
@@ -312,8 +316,10 @@ export async function upsertVideo(
         .insert({
           topic_id: videoData.topic_id,
           title: videoData.title,
-          youtube_url: videoData.youtube_url,
-          helper_material_url: videoData.helper_material_url || null
+          youtube_url: videoData.youtube_url || null,
+          admin_video_url: videoData.admin_video_url || null,
+          helper_material_url: videoData.helper_material_url || null,
+          document_url: videoData.document_url || null
         })
         .select()
         .single()

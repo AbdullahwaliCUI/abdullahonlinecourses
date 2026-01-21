@@ -17,8 +17,10 @@ interface Video {
   id: string
   topic_id: string
   title: string
-  youtube_url: string
+  youtube_url: string | null
+  admin_video_url: string | null
   helper_material_url: string | null
+  document_url: string | null
   created_at: string
 }
 
@@ -118,14 +120,14 @@ export default function StudentTopicPage() {
       // Get current user ID from auth
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (!user) {
         alert('You must be logged in to mark topics as completed')
         return
       }
 
       const result = await markTopicCompleted(user.id, courseId, topicId)
-      
+
       if (result.error) {
         alert(`Error: ${result.error}`)
       } else {
@@ -249,8 +251,8 @@ export default function StudentTopicPage() {
         ) : (
           <div className="space-y-8">
             {videos.map((video, index) => {
-              const embedUrl = getYouTubeEmbedUrl(video.youtube_url)
-              
+              const embedUrl = video.youtube_url ? getYouTubeEmbedUrl(video.youtube_url) || undefined : undefined
+
               return (
                 <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                   <div className="p-6">
@@ -281,23 +283,68 @@ export default function StudentTopicPage() {
                     </div>
 
                     {/* YouTube Embed */}
-                    {embedUrl ? (
-                      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                        <iframe
-                          src={embedUrl}
-                          title={video.title}
-                          className="absolute top-0 left-0 w-full h-full rounded-lg"
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        ></iframe>
+                    {video.youtube_url ? (
+                      embedUrl ? (
+                        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                          <iframe
+                            src={embedUrl}
+                            title={video.title}
+                            className="absolute top-0 left-0 w-full h-full rounded-lg"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-100 rounded-lg p-8 text-center">
+                          <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          <p className="text-gray-600">Unable to embed video. Please use the YouTube link above.</p>
+                        </div>
+                      )
+                    ) : video.admin_video_url ? (
+                      <div className="relative w-full">
+                        {/* Simple check for video extensions, otherwise fallback to link */}
+                        {/\.(mp4|webm|ogg)$/i.test(video.admin_video_url) ? (
+                          <video
+                            controls
+                            className="w-full rounded-lg shadow-sm"
+                            src={video.admin_video_url}
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        ) : (
+                          <div className="bg-gray-100 rounded-lg p-8 text-center">
+                            <p className="text-gray-600 mb-4">This video is hosted externally.</p>
+                            <a
+                              href={video.admin_video_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                            >
+                              Watch Video
+                            </a>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="bg-gray-100 rounded-lg p-8 text-center">
-                        <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-gray-600">Unable to embed video. Please use the YouTube link above.</p>
+                    ) : null}
+
+                    {/* Document URL */}
+                    {video.document_url && (
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <h4 className="text-sm font-medium text-gray-900 mb-2">Attached Document</h4>
+                        <a
+                          href={video.document_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          View Document
+                        </a>
                       </div>
                     )}
                   </div>

@@ -24,13 +24,13 @@ export function isHttpsUrl(url: string): boolean {
  */
 export function isYouTubeUrl(url: string): boolean {
   if (!isValidUrl(url)) return false
-  
+
   const youtubePatterns = [
     /^https:\/\/(www\.)?youtube\.com\//,
     /^https:\/\/youtu\.be\//,
     /^https:\/\/m\.youtube\.com\//
   ]
-  
+
   return youtubePatterns.some(pattern => pattern.test(url))
 }
 
@@ -39,12 +39,12 @@ export function isYouTubeUrl(url: string): boolean {
  */
 export function isGitHubRawUrl(url: string): boolean {
   if (!isValidUrl(url)) return false
-  
+
   const githubRawPatterns = [
     /^https:\/\/raw\.githubusercontent\.com\//,
     /^https:\/\/github\.com\/.*\/raw\//
   ]
-  
+
   return githubRawPatterns.some(pattern => pattern.test(url))
 }
 
@@ -53,13 +53,13 @@ export function isGitHubRawUrl(url: string): boolean {
  */
 export function isGoogleDriveUrl(url: string): boolean {
   if (!isValidUrl(url)) return false
-  
+
   const drivePatterns = [
     /^https:\/\/drive\.google\.com\/file\/d\/.*\/view/,
     /^https:\/\/drive\.google\.com\/open\?id=/,
     /^https:\/\/docs\.google\.com\/.*\/d\/.*\//
   ]
-  
+
   return drivePatterns.some(pattern => pattern.test(url))
 }
 
@@ -68,7 +68,7 @@ export function isGoogleDriveUrl(url: string): boolean {
  */
 export function isValidReceiptUrl(url: string): boolean {
   if (!isValidUrl(url)) return false
-  
+
   // Allow GitHub raw, Google Drive, and other common CDN patterns
   const allowedPatterns = [
     /^https:\/\/raw\.githubusercontent\.com\//,
@@ -83,7 +83,7 @@ export function isValidReceiptUrl(url: string): boolean {
     /^https:\/\/.*\.dropbox\.com\//,
     /^https:\/\/.*\.dropboxusercontent\.com\//
   ]
-  
+
   return allowedPatterns.some(pattern => pattern.test(url))
 }
 
@@ -190,14 +190,29 @@ export const videoSchema = z.object({
     .trim(),
   youtube_url: z.string()
     .url('Invalid YouTube URL format')
-    .refine(isYouTubeUrl, 'Must be a valid YouTube URL'),
+    .refine(isYouTubeUrl, 'Must be a valid YouTube URL')
+    .optional()
+    .or(z.literal('')),
+  admin_video_url: z.string()
+    .url('Invalid Video URL format')
+    .refine(isHttpsUrl, 'Video URL must be HTTPS')
+    .optional()
+    .or(z.literal('')),
   helper_material_url: z.string()
     .url('Invalid helper material URL format')
     .refine(isHttpsUrl, 'Helper material URL must be HTTPS')
     .refine(isGitHubRawUrl, 'Helper material URL must be from GitHub raw')
     .optional()
     .or(z.literal('')),
+  document_url: z.string()
+    .url('Invalid document URL format')
+    .refine(isHttpsUrl, 'Document URL must be HTTPS')
+    .optional()
+    .or(z.literal('')),
   topic_id: z.string().uuid('Invalid topic ID')
+}).refine(data => data.youtube_url || data.admin_video_url, {
+  message: "Either YouTube URL or Admin Video URL must be provided",
+  path: ["youtube_url"]
 })
 
 export type VideoData = z.infer<typeof videoSchema>

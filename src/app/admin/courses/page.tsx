@@ -30,8 +30,10 @@ interface Video {
   id: string
   topic_id: string
   title: string
-  youtube_url: string
+  youtube_url: string | null
+  admin_video_url: string | null
   helper_material_url: string | null
+  document_url: string | null
   created_at: string
 }
 
@@ -51,7 +53,13 @@ export default function AdminCoursesPage() {
   // Form states
   const [courseForm, setCourseForm] = useState({ title: '', description: '', image_url: '' })
   const [topicForm, setTopicForm] = useState({ title: '', order_index: 1 })
-  const [videoForm, setVideoForm] = useState({ title: '', youtube_url: '', helper_material_url: '' })
+  const [videoForm, setVideoForm] = useState({
+    title: '',
+    youtube_url: '',
+    admin_video_url: '',
+    helper_material_url: '',
+    document_url: ''
+  })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const [processing, setProcessing] = useState(false)
@@ -222,8 +230,10 @@ export default function AdminCoursesPage() {
       // Validate form data
       const validatedData = videoSchema.parse({
         title: videoForm.title,
-        youtube_url: videoForm.youtube_url,
-        helper_material_url: videoForm.helper_material_url,
+        youtube_url: videoForm.youtube_url || undefined,
+        admin_video_url: videoForm.admin_video_url || undefined,
+        helper_material_url: videoForm.helper_material_url || undefined,
+        document_url: videoForm.document_url || undefined,
         topic_id: selectedTopic.id
       })
 
@@ -339,7 +349,9 @@ export default function AdminCoursesPage() {
     setVideoForm({
       title: video?.title || '',
       youtube_url: video?.youtube_url || '',
-      helper_material_url: video?.helper_material_url || ''
+      admin_video_url: video?.admin_video_url || '',
+      helper_material_url: video?.helper_material_url || '',
+      document_url: video?.document_url || ''
     })
   }
 
@@ -530,14 +542,26 @@ export default function AdminCoursesPage() {
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900">{video.title}</h3>
-                        <a
-                          href={video.youtube_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 mt-1 block"
-                        >
-                          View on YouTube →
-                        </a>
+                        {video.youtube_url && (
+                          <a
+                            href={video.youtube_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 mt-1 block"
+                          >
+                            View on YouTube →
+                          </a>
+                        )}
+                        {video.admin_video_url && (
+                          <a
+                            href={video.admin_video_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-indigo-600 hover:text-indigo-800 mt-1 block"
+                          >
+                            View Admin Video →
+                          </a>
+                        )}
                         {video.helper_material_url && (
                           <a
                             href={video.helper_material_url}
@@ -546,6 +570,16 @@ export default function AdminCoursesPage() {
                             className="text-sm text-green-600 hover:text-green-800 mt-1 block"
                           >
                             Helper Material →
+                          </a>
+                        )}
+                        {video.document_url && (
+                          <a
+                            href={video.document_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-teal-600 hover:text-teal-800 mt-1 block"
+                          >
+                            Document →
                           </a>
                         )}
                       </div>
@@ -710,15 +744,26 @@ export default function AdminCoursesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">YouTube URL *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">YouTube URL</label>
                 <input
                   type="url"
                   value={videoForm.youtube_url}
                   onChange={(e) => setVideoForm({ ...videoForm, youtube_url: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="https://youtube.com/watch?v=..."
-                  required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Admin Video URL</label>
+                <input
+                  type="url"
+                  value={videoForm.admin_video_url}
+                  onChange={(e) => setVideoForm({ ...videoForm, admin_video_url: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="https://..."
+                />
+                <p className="text-xs text-gray-500 mt-1">Provide either YouTube URL or Admin Video URL (or both)</p>
               </div>
 
               <div>
@@ -731,13 +776,24 @@ export default function AdminCoursesPage() {
                   placeholder="https://..."
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Document URL</label>
+                <input
+                  type="url"
+                  value={videoForm.document_url}
+                  onChange={(e) => setVideoForm({ ...videoForm, document_url: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="https://..."
+                />
+              </div>
             </div>
 
             <div className="flex space-x-3 mt-6">
               <LoadingButton
                 onClick={handleVideoSubmit}
                 loading={processing}
-                disabled={!videoForm.title || !videoForm.youtube_url}
+                disabled={!videoForm.title || (!videoForm.youtube_url && !videoForm.admin_video_url)}
                 className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50"
               >
                 Save Video
