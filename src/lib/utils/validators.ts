@@ -177,7 +177,8 @@ export const topicSchema = z.object({
   course_id: z.string().uuid('Invalid course ID'),
   order_index: z.number()
     .int('Order index must be an integer')
-    .min(1, 'Order index must be at least 1')
+    .min(1, 'Order index must be at least 1'),
+  is_preview: z.boolean().optional()
 })
 
 export type TopicData = z.infer<typeof topicSchema>
