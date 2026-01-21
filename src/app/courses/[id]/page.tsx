@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { getVideoIdFromUrl, getThumbnailUrl } from '@/lib/utils/youtube'
 import { getVisibleTopicsForPublic, getUserEnrollmentStatus } from '@/lib/visibility'
+import { getDirectImageUrl } from '@/lib/utils/image'
 
 interface Course {
   id: string
@@ -30,7 +31,7 @@ interface VisibilityData {
 
 async function getCourse(courseId: string): Promise<Course | null> {
   const supabase = await createClient()
-  
+
   const { data: course, error } = await supabase
     .from('courses')
     .select('*')
@@ -59,7 +60,7 @@ async function getCourseThumbnail(courseId: string, imageUrl: string | null): Pr
   if (imageUrl) return imageUrl
 
   const supabase = await createClient()
-  
+
   // Get first video from first topic
   const { data: firstTopic } = await supabase
     .from('topics')
@@ -84,13 +85,13 @@ async function getCourseThumbnail(courseId: string, imageUrl: string | null): Pr
   return videoId ? getThumbnailUrl(videoId) : null
 }
 
-export default async function CourseDetailsPage({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
+export default async function CourseDetailsPage({
+  params
+}: {
+  params: Promise<{ id: string }>
 }) {
   const { id: courseId } = await params
-  
+
   const [course, topicsData, enrollmentStatus] = await Promise.all([
     getCourse(courseId),
     getCourseTopics(courseId),
@@ -103,7 +104,7 @@ export default async function CourseDetailsPage({
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Course Not Found</h1>
           <p className="text-gray-600 mb-6">The course you're looking for doesn't exist or is no longer available.</p>
-          <Link 
+          <Link
             href="/courses"
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
@@ -117,7 +118,7 @@ export default async function CourseDetailsPage({
   const thumbnailUrl = await getCourseThumbnail(courseId, course.image_url)
   const { isEnrolled, isActive } = enrollmentStatus
   const { topics, visibleCount, totalCount } = topicsData
-  
+
   // Determine which topics to show
   const visibleTopics = isActive ? topics : topics.slice(0, visibleCount)
   const hiddenTopicsCount = totalCount - visibleTopics.length
@@ -130,7 +131,7 @@ export default async function CourseDetailsPage({
           {thumbnailUrl && (
             <div className="relative h-64 w-full">
               <Image
-                src={thumbnailUrl}
+                src={getDirectImageUrl(thumbnailUrl) || thumbnailUrl}
                 alt={course.title}
                 fill
                 className="object-cover"
@@ -138,21 +139,21 @@ export default async function CourseDetailsPage({
               />
             </div>
           )}
-          
+
           <div className="p-8">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-4">
                   {course.title}
                 </h1>
-                
+
                 {course.description && (
                   <p className="text-gray-600 text-lg leading-relaxed mb-6">
                     {course.description}
                   </p>
                 )}
               </div>
-              
+
               {isActive && (
                 <div className="ml-6">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
@@ -184,7 +185,7 @@ export default async function CourseDetailsPage({
             <h2 className="text-2xl font-semibold text-gray-900">Course Topics</h2>
             {!isActive && hiddenTopicsCount > 0 && (
               <p className="text-sm text-gray-600 mt-2">
-                Showing {visibleTopics.length} of {totalCount} topics. 
+                Showing {visibleTopics.length} of {totalCount} topics.
                 <span className="font-medium"> Enroll to see all content.</span>
               </p>
             )}
@@ -198,7 +199,7 @@ export default async function CourseDetailsPage({
                     {index + 1}
                   </span>
                 </div>
-                
+
                 <div className="flex-1">
                   <h3 className="text-lg font-medium text-gray-900">
                     {topic.title}
@@ -274,17 +275,17 @@ export default async function CourseDetailsPage({
                 Ready to Start Learning?
               </h3>
               <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-                Get full access to all {totalCount} topics, video content, and learning materials. 
+                Get full access to all {totalCount} topics, video content, and learning materials.
                 Submit your payment and start your learning journey today.
               </p>
-              
+
               <Link
                 href={`/request/${courseId}`}
                 className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors inline-block"
               >
                 Request Enrollment & Submit Payment
               </Link>
-              
+
               <div className="mt-6 text-sm text-blue-200">
                 <p>Secure payment via JazzCash • Quick approval process</p>
               </div>

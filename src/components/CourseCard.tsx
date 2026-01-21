@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { getDirectImageUrl } from '@/lib/utils/image'
 
 interface CourseCardProps {
   id: string
@@ -9,12 +10,12 @@ interface CourseCardProps {
   className?: string
 }
 
-export default function CourseCard({ 
-  id, 
-  title, 
-  description, 
-  imageUrl, 
-  className = '' 
+export default function CourseCard({
+  id,
+  title,
+  description,
+  imageUrl,
+  className = ''
 }: CourseCardProps) {
   return (
     <Link href={`/courses/${id}`}>
@@ -22,7 +23,7 @@ export default function CourseCard({
         {imageUrl && (
           <div className="relative h-48 w-full">
             <Image
-              src={imageUrl}
+              src={getDirectImageUrl(imageUrl) || imageUrl}
               alt={title}
               fill
               className="object-cover"
@@ -30,18 +31,18 @@ export default function CourseCard({
             />
           </div>
         )}
-        
+
         <div className="p-6">
           <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
             {title}
           </h3>
-          
+
           {description && (
             <p className="text-gray-600 text-sm line-clamp-3">
               {description}
             </p>
           )}
-          
+
           <div className="mt-4">
             <span className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
               View Course
