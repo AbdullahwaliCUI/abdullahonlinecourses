@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function getVisibleTopicsForPublic(courseId: string) {
   const supabase = await createClient()
-  
+
   try {
     // Fetch all topics for the course ordered by order_index
     const { data: topics, error } = await supabase
@@ -16,8 +16,10 @@ export async function getVisibleTopicsForPublic(courseId: string) {
       return { topics: [], visibleCount: 0, totalCount: 0 }
     }
 
+    // We now return all topics and let the UI decide what to show based on is_preview
+    // or enrollment status.
     const totalCount = topics?.length || 0
-    const visibleCount = Math.floor(totalCount / 2)
+    const visibleCount = totalCount // Show all topics in the list
 
     return {
       topics: topics || [],
@@ -32,7 +34,7 @@ export async function getVisibleTopicsForPublic(courseId: string) {
 
 export async function getIsEnrolledActive(userId: string, courseId: string): Promise<boolean> {
   const supabase = await createClient()
-  
+
   try {
     const { data: enrollment, error } = await supabase
       .from('enrollments')
@@ -60,7 +62,7 @@ export async function getUserEnrollmentStatus(userId: string | null, courseId: s
   }
 
   const isActive = await getIsEnrolledActive(userId, courseId)
-  
+
   return {
     isEnrolled: isActive, // For now, we only consider active enrollments
     isActive
