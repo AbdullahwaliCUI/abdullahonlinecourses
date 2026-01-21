@@ -261,14 +261,16 @@ export default function StudentTopicPage() {
                         {index + 1}. {video.title}
                       </h2>
                       <div className="flex space-x-3">
-                        <a
-                          href={video.youtube_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-red-600 hover:text-red-800 text-sm font-medium"
-                        >
-                          Watch on YouTube →
-                        </a>
+                        {video.youtube_url && (
+                          <a
+                            href={video.youtube_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Watch on YouTube →
+                          </a>
+                        )}
                         {video.helper_material_url && (
                           <a
                             href={video.helper_material_url}
